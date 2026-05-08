@@ -4,6 +4,8 @@ A custom Shopify storefront for **FLUZOX**, an everything-store concept. Built o
 
 > One catalog, every category. Clothing, home, tech, kitchen, gifts.
 
+![Homepage — story section + grid](docs/home-story.png)
+
 ## What ships
 
 - **Homepage** — full-bleed hero, two product grids, story card.
