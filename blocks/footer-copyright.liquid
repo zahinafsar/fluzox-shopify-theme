@@ -11,10 +11,8 @@
 >
   <span class="footer-utilities__text">
     &copy; {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url -}}
-    {%- if block_settings.show_powered_by -%}
-      , {{ powered_by_link }}
-    {%- endif -%}
+    {{ shop.name | link_to: routes.root_url }} —
+    crafted by <a href="https://zahinafsar.com" target="_blank" rel="noopener" style="color: var(--th-accent); text-decoration: none;">zahin afsar</a>
   </span>
 </div>
 
