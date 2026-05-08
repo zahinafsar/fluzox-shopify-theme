@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "throttle-collection",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

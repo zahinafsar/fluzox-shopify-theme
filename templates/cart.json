@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "throttle-cart",
+      "settings": {}
+    },
+    "related": {
+      "type": "throttle-products",
+      "settings": {
+        "heading": "You may also like",
+        "limit": 4
+      }
+    }
+  },
+  "order": ["main", "related"]
+}

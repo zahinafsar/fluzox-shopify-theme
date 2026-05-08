@@ -1,0 +1,53 @@
+{%- liquid
+  assign default_bg = 'https://images.pexels.com/photos/6127404/pexels-photo-6127404.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1200&w=1920'
+  assign bg_url = section.settings.bg_url | default: default_bg
+  assign heading = section.settings.heading | default: 'Everything you need. One catalog.'
+  assign cta_label = section.settings.cta_label | default: 'Shop the Catalog'
+  assign cta_link = section.settings.cta_link | default: '/collections/all'
+-%}
+
+<section class="th-hero" id="throttle-hero-{{ section.id }}">
+  <div class="th-hero__bg" style="background-image: url('{{ bg_url }}');"></div>
+  <div class="th-hero__overlay"></div>
+  <div class="th-hero__inner">
+    <h1 class="th-hero__heading">{{ heading }}</h1>
+    {%- if cta_label != blank -%}
+      <a href="{{ cta_link }}" class="th-pill th-hero__cta">{{ cta_label }}</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Throttle Hero",
+  "tag": "section",
+  "class": "throttle-hero-wrapper",
+  "settings": [
+    {
+      "type": "url",
+      "id": "bg_url",
+      "label": "Background image URL (Pexels)"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Everything you need. One catalog."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Shop the Catalog"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    }
+  ],
+  "presets": [
+    { "name": "Throttle Hero" }
+  ]
+}
+{% endschema %}

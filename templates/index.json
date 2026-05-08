@@ -1,0 +1,44 @@
+{
+  "sections": {
+    "hero": {
+      "type": "throttle-hero",
+      "settings": {
+        "bg_url": "https://images.pexels.com/photos/6127404/pexels-photo-6127404.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1200&w=1920",
+        "heading": "Everything you need. One catalog.",
+        "cta_label": "Shop the Catalog",
+        "cta_link": "shopify://collections/all"
+      }
+    },
+    "products_top": {
+      "type": "throttle-products",
+      "settings": {
+        "collection": "all",
+        "limit": 4
+      }
+    },
+    "story": {
+      "type": "throttle-story",
+      "settings": {
+        "bg_url": "https://images.pexels.com/photos/30109293/pexels-photo-30109293.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1100&w=1800",
+        "heading": "Hand-picked across every category",
+        "body": "Clothing, home, tech, kitchen, gifts. One catalog, one editor's pick per slot — so you don't have to scroll ten tabs to find the right one.",
+        "cta_label": "How We Curate",
+        "cta_link": "shopify://pages/about"
+      }
+    },
+    "products_bottom": {
+      "type": "throttle-products",
+      "settings": {
+        "heading": "New This Week",
+        "collection": "all",
+        "limit": 8
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "products_top",
+    "story",
+    "products_bottom"
+  ]
+}

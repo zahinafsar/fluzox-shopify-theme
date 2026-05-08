@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "stub": {
+      "type": "throttle-stub",
+      "settings": {
+        "heading": "Off the shelf.",
+        "body": "This page isn't part of the catalog. Try the shop.",
+        "cta_label": "Shop the Catalog",
+        "cta_link": "shopify://collections/all"
+      }
+    }
+  },
+  "order": ["stub"]
+}

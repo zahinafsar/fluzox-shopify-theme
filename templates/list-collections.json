@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "stub": {
+      "type": "throttle-stub",
+      "settings": {
+        "heading": "One catalog, every category.",
+        "body": "We keep it simple — every product lives in one place.",
+        "cta_label": "Shop the Catalog",
+        "cta_link": "shopify://collections/all"
+      }
+    }
+  },
+  "order": ["stub"]
+}

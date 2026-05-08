@@ -1,0 +1,27 @@
+{%- liquid
+  assign title = collection.title | default: 'All Prints'
+  assign desc = collection.description
+-%}
+<section class="th-coll-header">
+  <div class="th-coll-header__inner">
+    <h1 class="th-display th-coll-header__title">{{ title }}</h1>
+    {%- if desc != blank -%}
+      <div class="th-coll-header__desc">{{ desc }}</div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .th-coll-header { padding: 140px 24px 24px; background: var(--th-cream); }
+  .th-coll-header__inner { max-width: 1480px; margin: 0 auto; }
+  .th-coll-header__title { font-size: clamp(2.4rem, 6vw, 4.5rem); margin: 0; color: var(--th-ink); }
+  .th-coll-header__desc { color: var(--th-muted); margin-top: 12px; max-width: 720px; line-height: 1.6; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection Header",
+  "tag": "section",
+  "settings": []
+}
+{% endschema %}

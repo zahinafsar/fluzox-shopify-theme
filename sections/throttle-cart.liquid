@@ -1,0 +1,323 @@
+{%- liquid
+  assign cart_empty = false
+  if cart.items.size == 0
+    assign cart_empty = true
+  endif
+-%}
+
+<section class="th-cart">
+  <div class="th-cart__inner">
+    <header class="th-cart__head">
+      <h1 class="th-display th-cart__title">Cart</h1>
+      {%- unless cart_empty -%}
+        <span class="th-cart__count">{{ cart.item_count }}</span>
+      {%- endunless -%}
+    </header>
+
+    {%- if cart_empty -%}
+      <div class="th-cart__empty">
+        <p>Your cart is empty.</p>
+        <a class="th-pill th-pill--accent" href="/collections/all">Shop the Catalog</a>
+      </div>
+    {%- else -%}
+      <form action="{{ routes.cart_url }}" method="post" novalidate class="th-cart__grid">
+        <div class="th-cart__items">
+          {%- for item in cart.items -%}
+            <div class="th-cart-item">
+              <a href="{{ item.url }}" class="th-cart-item__media">
+                {%- if item.image -%}
+                  <img src="{{ item.image | image_url: width: 200 }}" alt="{{ item.product.title | escape }}" loading="lazy">
+                {%- endif -%}
+              </a>
+              <div class="th-cart-item__info">
+                <a href="{{ item.url }}" class="th-cart-item__title">{{ item.product.title }}</a>
+                {%- unless item.product.has_only_default_variant -%}
+                  <div class="th-cart-item__variant">{{ item.variant.title }}</div>
+                {%- endunless -%}
+                <div class="th-cart-item__price-mobile">{{ item.final_line_price | money }}</div>
+              </div>
+              <div class="th-cart-item__qty" data-line="{{ forloop.index }}" data-key="{{ item.key }}">
+                <button type="button" class="th-qty-btn" data-th-qty-dec aria-label="Decrease">−</button>
+                <input
+                  type="number"
+                  class="th-qty-input"
+                  value="{{ item.quantity }}"
+                  min="0"
+                  data-th-qty-input
+                  readonly
+                >
+                <button type="button" class="th-qty-btn" data-th-qty-inc aria-label="Increase">+</button>
+              </div>
+              <div class="th-cart-item__price">{{ item.final_line_price | money }}</div>
+              <a href="{{ item.url_to_remove }}" class="th-cart-item__remove" aria-label="Remove">×</a>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        <aside class="th-cart__summary">
+          <div class="th-cart__row th-cart__row--total">
+            <span>Estimated total</span>
+            <strong>{{ cart.total_price | money_with_currency }}</strong>
+          </div>
+          <p class="th-cart__note">Taxes, shipping and discounts calculated at checkout.</p>
+          <button type="submit" name="checkout" class="th-pill th-pill--accent th-cart__checkout">Check Out</button>
+        </aside>
+      </form>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.querySelector('.th-cart');
+    if (!root) return;
+
+    // Qty +/- with server-side update via /cart/change.js
+    var busy = false;
+    function updateLine(line, quantity, group) {
+      if (busy) return;
+      busy = true;
+      group.classList.add('is-loading');
+      fetch('/cart/change.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ line: line, quantity: quantity }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function () { window.location.reload(); })
+        .catch(function () {
+          busy = false;
+          group.classList.remove('is-loading');
+        });
+    }
+
+    root.querySelectorAll('.th-cart-item__qty').forEach(function (group) {
+      var input = group.querySelector('[data-th-qty-input]');
+      var dec = group.querySelector('[data-th-qty-dec]');
+      var inc = group.querySelector('[data-th-qty-inc]');
+      var line = parseInt(group.getAttribute('data-line'), 10);
+      if (!input) return;
+      if (dec) dec.addEventListener('click', function () {
+        var next = Math.max(0, parseInt(input.value, 10) - 1);
+        updateLine(line, next, group);
+      });
+      if (inc) inc.addEventListener('click', function () {
+        var next = parseInt(input.value, 10) + 1;
+        updateLine(line, next, group);
+      });
+    });
+
+    // Remove links → server-side too via change.js to 0
+    root.querySelectorAll('.th-cart-item__remove').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var item = a.closest('.th-cart-item');
+        var group = item && item.querySelector('.th-cart-item__qty');
+        if (!group) { window.location = a.getAttribute('href'); return; }
+        var line = parseInt(group.getAttribute('data-line'), 10);
+        updateLine(line, 0, group);
+      });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .th-cart { padding: 48px 24px 80px; background: #fff; }
+  .th-cart__inner { max-width: 1280px; margin: 0 auto; }
+
+  .th-cart__head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .th-cart__title {
+    font-size: clamp(2.4rem, 5vw, 3.6rem) !important;
+    margin: 0;
+    padding: 0 !important;
+    color: var(--th-ink);
+  }
+  .th-cart__count {
+    background: var(--th-accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .th-cart__empty {
+    text-align: center;
+    padding: 64px 0;
+    color: var(--th-muted);
+  }
+  .th-cart__empty .th-pill { margin-top: 24px; }
+
+  .th-cart__grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 48px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .th-cart__grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+
+  .th-cart__items { display: flex; flex-direction: column; }
+
+  .th-cart-item {
+    display: grid;
+    grid-template-columns: 96px 1fr auto auto auto;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid #ececec;
+  }
+  .th-cart-item:first-child { border-top: 1px solid #ececec; }
+  @media (max-width: 720px) {
+    .th-cart-item {
+      grid-template-columns: 80px 1fr auto;
+      grid-template-areas:
+        "media info remove"
+        "media qty qty"
+        "media price price";
+      gap: 8px 16px;
+    }
+    .th-cart-item__media { grid-area: media; }
+    .th-cart-item__info { grid-area: info; }
+    .th-cart-item__qty { grid-area: qty; justify-self: start; }
+    .th-cart-item__price { grid-area: price; justify-self: start; }
+    .th-cart-item__price-mobile { display: none; }
+    .th-cart-item__remove { grid-area: remove; }
+  }
+  .th-cart-item__media {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f4f4f4;
+    display: block;
+  }
+  .th-cart-item__media img { width: 100%; height: 100%; object-fit: cover; }
+  .th-cart-item__title {
+    font-weight: 600;
+    color: var(--th-ink);
+    text-decoration: none;
+    display: block;
+  }
+  .th-cart-item__title:hover { color: var(--th-accent); }
+  .th-cart-item__variant { font-size: 0.9rem; color: var(--th-muted); margin-top: 2px; }
+  .th-cart-item__price-mobile { display: none; }
+
+  .th-cart-item__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+    transition: opacity 0.2s;
+  }
+  .th-cart-item__qty.is-loading { opacity: 0.5; pointer-events: none; }
+  .th-qty-btn {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--th-ink);
+  }
+  .th-qty-btn:hover { background: #f4f4f4; }
+  .th-qty-input {
+    width: 44px;
+    height: 36px;
+    border: 0;
+    text-align: center;
+    font-size: 0.95rem;
+    background: transparent;
+    -moz-appearance: textfield;
+  }
+  .th-qty-input::-webkit-outer-spin-button,
+  .th-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+
+  .th-cart-item__price { font-weight: 600; color: var(--th-ink); min-width: 80px; text-align: right; }
+  .th-cart-item__remove {
+    color: var(--th-muted);
+    text-decoration: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  .th-cart-item__remove:hover { color: var(--th-accent); background: #fbecec; }
+
+  .th-cart__summary {
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 24px !important;
+    background: #fff !important;
+    position: sticky;
+    top: 100px;
+  }
+  .th-cart__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+  }
+  .th-cart__row--top { border-bottom: 1px solid #ececec; }
+  .th-cart__row--total { font-size: 1.05rem; }
+  .th-cart__row--total strong { font-weight: 700; }
+
+  .th-cart__discount-toggle {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--th-ink);
+  }
+  .th-cart__plus { color: var(--th-muted); font-weight: 400; }
+
+  .th-cart__discount-field { padding: 8px 0 4px; }
+  .th-cart__input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+  }
+
+  .th-cart__note { font-size: 0.85rem; color: var(--th-muted); margin: 4px 0 16px; }
+  .th-cart__checkout { width: 100%; padding: 16px; margin-top: 4px; }
+  .th-cart__update {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+    padding: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    color: var(--th-ink);
+  }
+  .th-cart__update:hover { border-color: var(--th-ink); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "section",
+  "settings": []
+}
+{% endschema %}

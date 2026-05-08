@@ -1,0 +1,326 @@
+{%- paginate collection.products by 24 -%}
+{%- liquid
+  assign coll = collection
+  assign products = coll.products
+-%}
+
+<section class="th-coll">
+  <header class="th-coll__header">
+    <h1 class="th-display th-coll__title">{{ coll.title | default: 'Products' }}</h1>
+    {%- if coll.description != blank -%}
+      <p class="th-coll__desc">{{ coll.description }}</p>
+    {%- endif -%}
+  </header>
+
+  <div class="th-coll__layout">
+    <aside class="th-coll__sidebar">
+      <form method="get" class="th-coll__form" id="th-coll-form">
+        {%- comment -%} Preserve sort across filter submits + vice-versa via JS {%- endcomment -%}
+
+        <div class="th-fset">
+          <label class="th-fset__legend" for="th-search">Search</label>
+          <input
+            id="th-search"
+            type="search"
+            class="th-input"
+            placeholder="Search products"
+            data-th-search
+          >
+        </div>
+
+        <div class="th-fset">
+          <label class="th-fset__legend" for="th-sort">Sort by</label>
+          <select id="th-sort" name="sort_by" class="th-input" data-th-autosubmit>
+            {%- for option in coll.sort_options -%}
+              <option value="{{ option.value }}" {% if option.value == coll.sort_by or option.value == coll.default_sort_by %}selected{% endif %}>
+                {{ option.name }}
+              </option>
+            {%- endfor -%}
+          </select>
+        </div>
+
+        {%- for filter in coll.filters -%}
+          {%- assign flabel = filter.label | downcase -%}
+          {%- if flabel contains 'availability' -%}{%- continue -%}{%- endif -%}
+          <div class="th-fset">
+            <div class="th-fset__legend">{{ filter.label }}</div>
+
+            {%- case filter.type -%}
+              {%- when 'list', 'boolean' -%}
+                <ul class="th-fset__list">
+                  {%- for value in filter.values -%}
+                    <li>
+                      <label class="th-check">
+                        <input
+                          type="checkbox"
+                          name="{{ value.param_name }}"
+                          value="{{ value.value }}"
+                          {% if value.active %}checked{% endif %}
+                          {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                          data-th-autosubmit
+                        >
+                        <span class="th-check__label">{{ value.label }}</span>
+                        <span class="th-check__count">{{ value.count }}</span>
+                      </label>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+
+              {%- when 'price_range' -%}
+                <div class="th-range">
+                  <input
+                    type="number"
+                    name="{{ filter.min_value.param_name }}"
+                    placeholder="Min"
+                    min="0"
+                    value="{{ filter.min_value.value }}"
+                    class="th-input th-input--sm"
+                    data-th-autosubmit-blur
+                  >
+                  <span>–</span>
+                  <input
+                    type="number"
+                    name="{{ filter.max_value.param_name }}"
+                    placeholder="Max"
+                    min="0"
+                    value="{{ filter.max_value.value }}"
+                    class="th-input th-input--sm"
+                    data-th-autosubmit-blur
+                  >
+                </div>
+                <div class="th-range__hint">
+                  {{ filter.range_min | money }} – {{ filter.range_max | money }}
+                </div>
+            {%- endcase -%}
+          </div>
+        {%- endfor -%}
+
+        <noscript>
+          <button type="submit" class="th-pill th-pill--dark">Apply</button>
+        </noscript>
+
+        {%- if coll.current_vendor or coll.current_type or coll.filters.size > 0 -%}
+          <a href="{{ coll.url }}" class="th-coll__clear">Clear all</a>
+        {%- endif -%}
+      </form>
+    </aside>
+
+    <div class="th-coll__main">
+      <div class="th-coll__meta">
+        <span>{{ products.size }} product{% if products.size != 1 %}s{% endif %}</span>
+      </div>
+
+      {%- if products.size == 0 -%}
+        <div class="th-coll__empty">
+          <p>No products match these filters.</p>
+          <a href="{{ coll.url }}" class="th-pill th-pill--dark">Clear filters</a>
+        </div>
+      {%- else -%}
+        <div class="th-coll__grid" data-product-grid data-th-grid>
+          {%- for product in products -%}
+            {%- assign on_sale = false -%}
+            {%- if product.compare_at_price > product.price -%}{%- assign on_sale = true -%}{%- endif -%}
+            {%- assign hover_img = product.images[1] -%}
+            <a href="{{ product.url }}" class="th-product-card{% unless product.available %} is-soldout{% endunless %}" data-th-card data-title="{{ product.title | downcase | escape }}">
+              <div class="th-product-card__media">
+                {%- if on_sale -%}<span class="th-product-card__badge th-product-card__badge--sale">Sale</span>{%- endif -%}
+                {%- unless product.available -%}<span class="th-product-card__badge th-product-card__badge--soldout">Sold Out</span>{%- endunless -%}
+                {%- if product.featured_image -%}
+                  {{ product.featured_image | image_url: width: 800 | image_tag: alt: product.title, loading: 'lazy', class: 'th-product-card__img' }}
+                {%- endif -%}
+                {%- if hover_img -%}
+                  {{ hover_img | image_url: width: 800 | image_tag: alt: '', loading: 'lazy', class: 'th-product-card__img th-product-card__img--hover' }}
+                {%- endif -%}
+                <span class="th-product-card__cta" aria-hidden="true">View</span>
+              </div>
+              <div class="th-product-card__body">
+                <div class="th-product-card__title">{{ product.title }}</div>
+                <div class="th-product-card__price">
+                  {%- if product.price_varies -%}
+                    <span class="th-product-card__price-from">From</span> {{ product.price_min | money }}
+                  {%- elsif on_sale -%}
+                    <span class="th-product-card__price-sale">{{ product.price | money }}</span>
+                    <span class="th-product-card__price-compare">{{ product.compare_at_price | money }}</span>
+                  {%- else -%}
+                    {{ product.price | money }}
+                  {%- endif -%}
+                </div>
+              </div>
+            </a>
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="th-coll__pagination">
+            {{ paginate | default_pagination }}
+          </nav>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+{%- endpaginate -%}
+
+<script>
+  (function () {
+    var form = document.getElementById('th-coll-form');
+    if (!form) return;
+
+    // Auto-submit on change for selects/checkboxes
+    form.querySelectorAll('[data-th-autosubmit]').forEach(function (el) {
+      el.addEventListener('change', function () { form.submit(); });
+    });
+    // Auto-submit on blur for number inputs
+    form.querySelectorAll('[data-th-autosubmit-blur]').forEach(function (el) {
+      el.addEventListener('change', function () { form.submit(); });
+    });
+
+    // Client-side text search across already-rendered cards
+    var search = form.querySelector('[data-th-search]');
+    var grid = document.querySelector('[data-th-grid]');
+    if (search && grid) {
+      search.addEventListener('input', function () {
+        var q = search.value.trim().toLowerCase();
+        grid.querySelectorAll('[data-th-card]').forEach(function (card) {
+          var t = card.getAttribute('data-title') || '';
+          card.style.display = (q === '' || t.indexOf(q) !== -1) ? '' : 'none';
+        });
+      });
+    }
+  })();
+</script>
+
+{% stylesheet %}
+  .th-coll { padding: 160px 24px 80px; background: #fff; }
+  .th-coll__header {
+    max-width: 1480px;
+    margin: 0 auto 32px;
+  }
+  .th-coll__title { font-size: clamp(2.4rem, 6vw, 4.5rem); margin: 0; color: var(--th-ink); }
+  .th-coll__desc { color: var(--th-muted); margin-top: 12px; max-width: 720px; line-height: 1.6; }
+
+  .th-coll__layout {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .th-coll__layout { grid-template-columns: 1fr; }
+  }
+
+  .th-coll__sidebar {
+    position: sticky;
+    top: 100px;
+  }
+  @media (max-width: 900px) {
+    .th-coll__sidebar { position: static; }
+  }
+
+  .th-coll__form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .th-fset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #ececec;
+    padding-bottom: 20px;
+  }
+  .th-fset:last-of-type { border-bottom: 0; padding-bottom: 0; }
+  .th-fset__legend {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--th-muted);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .th-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    background: #fff;
+    color: var(--th-ink);
+    font-family: inherit;
+  }
+  .th-input:focus { outline: none; border-color: var(--th-ink); }
+  .th-input--sm { padding: 8px 12px; font-size: 0.88rem; }
+  select.th-input { appearance: none; padding-right: 36px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 16px) center, calc(100% - 12px) center; background-size: 4px 4px; background-repeat: no-repeat; }
+
+  .th-fset__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+  .th-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .th-check input { accent-color: var(--th-accent); }
+  .th-check__label { flex: 1; color: var(--th-ink); }
+  .th-check__count { color: var(--th-muted); font-size: 0.8rem; }
+  .th-check input:disabled + .th-check__label { color: var(--th-muted); text-decoration: line-through; }
+
+  .th-range { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+  .th-range span { color: var(--th-muted); }
+  .th-range__hint { font-size: 0.75rem; color: var(--th-muted); margin-top: 6px; }
+
+  .th-coll__clear {
+    align-self: flex-start;
+    color: var(--th-accent);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .th-coll__meta {
+    color: var(--th-muted);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ececec;
+  }
+
+  .th-coll__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+  @media (max-width: 1100px) { .th-coll__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .th-coll__grid { grid-template-columns: 1fr; } }
+
+  .th-coll__empty { padding: 48px 0; text-align: center; color: var(--th-muted); }
+  .th-coll__empty .th-pill { margin-top: 16px; }
+
+  .th-coll__pagination { margin-top: 32px; display: flex; justify-content: center; gap: 8px; }
+  .th-coll__pagination a, .th-coll__pagination span {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #e0e0e0;
+    color: var(--th-ink);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .th-coll__pagination .page.current span,
+  .th-coll__pagination span[aria-current="page"] {
+    background: var(--th-ink);
+    color: #fff;
+    border-color: var(--th-ink);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection",
+  "tag": "section",
+  "settings": []
+}
+{% endschema %}
