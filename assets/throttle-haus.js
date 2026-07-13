@@ -1,13 +1,21 @@
 (function () {
+  function revealAll() {
+    document.querySelectorAll('.th-reveal').forEach(function (el) {
+      el.classList.add('is-visible');
+    });
+  }
+
   function loadGsap() {
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
       if (window.gsap && window.ScrollTrigger) return resolve();
       var s1 = document.createElement('script');
       s1.src = 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js';
+      s1.onerror = reject;
       s1.onload = function () {
         var s2 = document.createElement('script');
         s2.src = 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js';
         s2.onload = resolve;
+        s2.onerror = reject;
         document.head.appendChild(s2);
       };
       document.head.appendChild(s1);
@@ -87,7 +95,7 @@
   }
 
   function boot() {
-    loadGsap().then(initAnimations);
+    loadGsap().then(initAnimations).catch(revealAll);
   }
 
   if (document.readyState === 'complete' || document.readyState === 'interactive') {

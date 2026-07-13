@@ -1,0 +1,243 @@
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign heading = section.settings.heading | default: 'Follow the feed'
+  assign handle = section.settings.handle | default: '@fluzox'
+  assign username = handle | remove: '@'
+  assign subheading = section.settings.subheading
+  assign avatar = section.settings.avatar
+
+  assign follow_link = section.settings.instagram
+  if follow_link == blank
+    assign follow_link = section.settings.tiktok
+  endif
+
+  assign socials = ''
+  if section.settings.instagram != blank
+    assign socials = socials | append: 'instagram,' | append: section.settings.instagram | append: '|'
+  endif
+  if section.settings.tiktok != blank
+    assign socials = socials | append: 'tiktok,' | append: section.settings.tiktok | append: '|'
+  endif
+  if section.settings.facebook != blank
+    assign socials = socials | append: 'facebook,' | append: section.settings.facebook | append: '|'
+  endif
+  if section.settings.twitter != blank
+    assign socials = socials | append: 'twitter,' | append: section.settings.twitter | append: '|'
+  endif
+  if section.settings.youtube != blank
+    assign socials = socials | append: 'youtube,' | append: section.settings.youtube | append: '|'
+  endif
+  if section.settings.pinterest != blank
+    assign socials = socials | append: 'pinterest,' | append: section.settings.pinterest | append: '|'
+  endif
+  assign socials = socials | split: '|'
+-%}
+
+{%- capture posts -%}
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign link = block.settings.link
+      if link == blank
+        assign link = follow_link
+      endif
+    -%}
+    <article class="th-post" {{ block.shopify_attributes }}>
+      <header class="th-post__head">
+        <span class="th-post__avatar">
+          {%- if avatar != blank -%}
+            <img src="{{ avatar | image_url: width: 96 }}" alt="{{ username }}" width="34" height="34" loading="lazy">
+          {%- else -%}
+            <span class="th-post__avatar-ring"><span class="th-post__avatar-initial">{{ username | slice: 0 | upcase }}</span></span>
+          {%- endif -%}
+        </span>
+        <span class="th-post__user">{{ username }}</span>
+      </header>
+      <a class="th-post__media" href="{{ link }}" target="_blank" rel="noopener" aria-label="{{ block.settings.caption | strip_html | truncatewords: 8 | escape }}">
+        {%- if block.settings.image != blank -%}
+          <img class="th-post__img" src="{{ block.settings.image }}" alt="{{ block.settings.caption | strip_html | escape }}" loading="lazy" width="700" height="700">
+        {%- else -%}
+          <span class="th-post__placeholder"></span>
+        {%- endif -%}
+      </a>
+    </article>
+  {%- endfor -%}
+{%- endcapture -%}
+
+<section class="th-social" id="throttle-social-{{ section.id }}">
+  <div class="th-social__inner">
+    <div class="th-social__head">
+      {%- if eyebrow != blank -%}
+        <span class="th-social__eyebrow">{{ eyebrow }}</span>
+      {%- endif -%}
+      {%- if heading != blank -%}
+        <h2 class="th-social__heading th-display">{{ heading }}</h2>
+      {%- endif -%}
+      {%- if handle != blank -%}
+        {%- if follow_link != blank -%}
+          <a class="th-social__handle" href="{{ follow_link }}" target="_blank" rel="noopener">{{ handle }}</a>
+        {%- else -%}
+          <p class="th-social__handle">{{ handle }}</p>
+        {%- endif -%}
+      {%- endif -%}
+      {%- if subheading != blank -%}
+        <p class="th-social__subheading">{{ subheading }}</p>
+      {%- endif -%}
+
+      {%- if socials.size > 0 -%}
+        <div class="th-social__links">
+          {%- for entry in socials -%}
+            {%- assign parts = entry | split: ',' -%}
+            <a href="{{ parts[1] }}" class="th-social__link" target="_blank" rel="noopener" aria-label="{{ parts[0] }}">
+              {%- render 'social-icon', platform: parts[0] -%}
+            </a>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="th-social__marquee" data-social-marquee>
+      <div class="th-social__track">
+        {{ posts }}
+        <span class="th-social__track-clone" aria-hidden="true">{{ posts }}</span>
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  .th-social { padding: 80px 0; background: var(--th-cream); overflow: hidden; }
+  .th-social__inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  .th-social__head { text-align: center; margin-bottom: 44px; }
+  .th-social__eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--th-accent);
+    margin-bottom: 14px;
+  }
+  .th-social__heading { font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0; }
+  .th-social__handle { display: inline-block; color: var(--th-ink); font-weight: 700; margin: 10px 0 0; font-size: 1.05rem; text-decoration: none; }
+  .th-social__handle:hover { color: var(--th-accent) !important; }
+  .th-social__subheading { color: var(--th-muted); font-size: 1rem; line-height: 1.6; max-width: 520px; margin: 12px auto 0; }
+  .th-social__links { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
+  .th-social__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #ececec;
+    color: var(--th-ink);
+    transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+  }
+  .th-social__link:hover { transform: translateY(-3px); background: var(--th-accent); color: #fff !important; }
+  .th-social__link svg { width: 20px; height: 20px; }
+
+  .th-social__marquee {
+    position: relative;
+    width: 100%;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+  .th-social__track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    padding: 8px 20px;
+    animation: th-social-scroll 55s linear infinite;
+  }
+  .th-social__track-clone { display: flex; gap: 20px; }
+  .th-social__marquee:hover .th-social__track { animation-play-state: paused; }
+  @keyframes th-social-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - 10px)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .th-social__marquee { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .th-social__track { animation: none; }
+    .th-social__track-clone { display: none; }
+  }
+
+  .th-post {
+    flex: none;
+    width: 280px;
+    background: #fff;
+    border: 1px solid #e9e9e9;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .th-post:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(20,17,15,0.1); }
+
+  .th-post__head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .th-post__avatar { flex: none; width: 34px; height: 34px; }
+  .th-post__avatar img { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; display: block; }
+  .th-post__avatar-ring {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 999px;
+    background: linear-gradient(45deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888);
+    padding: 2px;
+  }
+  .th-post__avatar-initial {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; border-radius: 999px;
+    background: var(--th-ink); color: #fff; font-weight: 700; font-size: 0.85rem;
+    border: 2px solid #fff;
+  }
+  .th-post__user { font-weight: 700; font-size: 0.9rem; color: var(--th-ink); }
+
+  .th-post__media { position: relative; display: block; aspect-ratio: 1 / 1; background: var(--th-cream-2); overflow: hidden; }
+  .th-post__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+  .th-post:hover .th-post__img { transform: scale(1.05); }
+  .th-post__placeholder { position: absolute; inset: 0; background: linear-gradient(135deg, #ececec, #f7f7f7); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Throttle Social",
+  "tag": "section",
+  "class": "throttle-social-wrapper",
+  "max_blocks": 16,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Social" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Follow the feed" },
+    { "type": "text", "id": "handle", "label": "Handle", "default": "@fluzox" },
+    { "type": "image_picker", "id": "avatar", "label": "Profile avatar" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Tag us to be featured." },
+    { "type": "header", "content": "Social links" },
+    { "type": "url", "id": "instagram", "label": "Instagram" },
+    { "type": "url", "id": "tiktok", "label": "TikTok" },
+    { "type": "url", "id": "facebook", "label": "Facebook" },
+    { "type": "url", "id": "twitter", "label": "X / Twitter" },
+    { "type": "url", "id": "youtube", "label": "YouTube" },
+    { "type": "url", "id": "pinterest", "label": "Pinterest" }
+  ],
+  "blocks": [
+    {
+      "type": "post",
+      "name": "Post",
+      "settings": [
+        { "type": "url", "id": "image", "label": "Image URL" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "caption", "label": "Alt text / caption" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Throttle Social",
+      "blocks": [
+        { "type": "post" },
+        { "type": "post" },
+        { "type": "post" },
+        { "type": "post" }
+      ]
+    }
+  ]
+}
+{% endschema %}

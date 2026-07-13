@@ -21,7 +21,7 @@
       "settings": {
         "bg_url": "https://images.pexels.com/photos/30109293/pexels-photo-30109293.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1100&w=1800",
         "heading": "Hand-picked across every category",
-        "body": "Clothing, home, tech, kitchen, gifts. One catalog, one editor's pick per slot — so you don't have to scroll ten tabs to find the right one.",
+        "body": "Clothing, home, tech, kitchen, gifts. One catalog, one editor's pick per slot, so you don't have to scroll ten tabs to find the right one.",
         "cta_label": "How We Curate",
         "cta_link": "shopify://pages/about"
       }
@@ -33,12 +33,131 @@
         "collection": "all",
         "limit": 8
       }
+    },
+    "reviews": {
+      "type": "throttle-reviews",
+      "blocks": {
+        "r1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "quote": "Fast shipping and the quality is genuinely better than I expected. Already ordered again.",
+            "name": "Alex Rivera",
+            "detail": "Verified buyer",
+            "verified": true
+          }
+        },
+        "r2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "quote": "One place for everything on my list. Saved me from bouncing between ten different stores.",
+            "name": "Priya Sharma",
+            "detail": "Home & Kitchen",
+            "verified": true
+          }
+        },
+        "r3": {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "quote": "Clean site, easy checkout, and the editor picks are actually good. Rare combo.",
+            "name": "Marcus Lee",
+            "detail": "Tech",
+            "verified": true
+          }
+        }
+      },
+      "block_order": ["r1", "r2", "r3"],
+      "settings": {
+        "eyebrow": "Reviews",
+        "heading": "What people are saying",
+        "subheading": "Thousands of shoppers, one catalog they trust.",
+        "columns": 3,
+        "show_stars": true
+      }
+    },
+    "social": {
+      "type": "throttle-social",
+      "blocks": {
+        "s1": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/27008322/pexels-photo-27008322.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "The Court Sneaker in bone white" } },
+        "s2": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/16033792/pexels-photo-16033792.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "Stoneware mug set" } },
+        "s3": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "Wireless over-ear headphones" } },
+        "s4": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/30676121/pexels-photo-30676121.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "Soy candle" } },
+        "s5": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/28977357/pexels-photo-28977357.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "The 38mm everyday watch" } },
+        "s6": { "type": "post", "settings": { "image": "https://images.pexels.com/photos/5996939/pexels-photo-5996939.png?auto=compress&cs=tinysrgb&fit=crop&w=700&h=700", "caption": "Heavyweight cotton tee" } }
+      },
+      "block_order": ["s1", "s2", "s3", "s4", "s5", "s6"],
+      "settings": {
+        "eyebrow": "Social",
+        "heading": "Follow the feed",
+        "handle": "@fluzox",
+        "subheading": "Tag us to be featured.",
+        "instagram": "https://www.instagram.com/",
+        "tiktok": "https://www.tiktok.com/",
+        "facebook": "https://www.facebook.com/"
+      }
+    },
+    "faq": {
+      "type": "throttle-faq",
+      "blocks": {
+        "q1": {
+          "type": "faq",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Most orders ship within 1-2 business days and arrive in 3-5 days.</p>",
+            "open": true
+          }
+        },
+        "q2": {
+          "type": "faq",
+          "settings": {
+            "question": "What is your return policy?",
+            "answer": "<p>Returns are free within 30 days of delivery. Items must be unused and in original packaging.</p>"
+          }
+        },
+        "q3": {
+          "type": "faq",
+          "settings": {
+            "question": "Do you ship internationally?",
+            "answer": "<p>Yes. International shipping rates and delivery times are calculated at checkout.</p>"
+          }
+        },
+        "q4": {
+          "type": "faq",
+          "settings": {
+            "question": "How do I track my order?",
+            "answer": "<p>You'll get a tracking link by email as soon as your order ships.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3", "q4"],
+      "settings": {
+        "eyebrow": "Support",
+        "heading": "Frequently asked questions",
+        "subheading": "Everything you need to know before you order."
+      }
+    },
+    "newsletter": {
+      "type": "throttle-newsletter",
+      "settings": {
+        "eyebrow": "Newsletter",
+        "heading": "Get first dibs",
+        "body": "New drops, restocks, and subscriber-only deals, straight to your inbox.",
+        "button_label": "Subscribe",
+        "disclaimer": "No spam. Unsubscribe anytime.",
+        "dark": true
+      }
     }
   },
   "order": [
     "hero",
     "products_top",
     "story",
-    "products_bottom"
+    "products_bottom",
+    "reviews",
+    "social",
+    "faq",
+    "newsletter"
   ]
 }

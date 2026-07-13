@@ -1,0 +1,161 @@
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign heading = section.settings.heading | default: 'Get first dibs'
+  assign body = section.settings.body
+  assign placeholder = section.settings.placeholder | default: 'you@email.com'
+  assign button_label = section.settings.button_label | default: 'Subscribe'
+  assign bg_url = section.settings.bg_url
+  assign dark = section.settings.dark
+-%}
+
+<section
+  class="th-news{% if dark %} th-news--dark{% endif %}{% if bg_url != blank %} th-news--image{% endif %}"
+  id="throttle-news-{{ section.id }}"
+  {% if bg_url != blank %}style="background-image: url('{{ bg_url }}');"{% endif %}
+>
+  {%- if bg_url != blank -%}<div class="th-news__overlay"></div>{%- endif -%}
+  <div class="th-news__inner">
+    {%- if eyebrow != blank -%}
+      <span class="th-news__eyebrow">{{ eyebrow }}</span>
+    {%- endif -%}
+    {%- if heading != blank -%}
+      <h2 class="th-news__heading th-display">{{ heading }}</h2>
+    {%- endif -%}
+    {%- if body != blank -%}
+      <p class="th-news__body">{{ body }}</p>
+    {%- endif -%}
+
+    {%- form 'customer', class: 'th-news__form' -%}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      {%- if form.posted_successfully? -%}
+        <p class="th-news__success">{{ section.settings.success_message | default: "Thanks — you're on the list." }}</p>
+      {%- else -%}
+        <div class="th-news__row">
+          <label class="th-news__label" for="th-news-email-{{ section.id }}">Email</label>
+          <input
+            id="th-news-email-{{ section.id }}"
+            class="th-news__input"
+            type="email"
+            name="contact[email]"
+            value="{{ form.email }}"
+            placeholder="{{ placeholder }}"
+            autocomplete="email"
+            required
+          >
+          <button type="submit" class="th-pill th-pill--accent th-news__button">{{ button_label }}</button>
+        </div>
+        {%- if form.errors -%}
+          <p class="th-news__error">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endform -%}
+
+    {%- if section.settings.disclaimer != blank -%}
+      <p class="th-news__disclaimer">{{ section.settings.disclaimer }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .th-news {
+    position: relative;
+    padding: 88px 24px;
+    background: var(--th-cream-2);
+    isolation: isolate;
+  }
+  .th-news--image { background-size: cover; background-position: center; }
+  .th-news__overlay {
+    position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, rgba(20,17,15,0.55), rgba(20,17,15,0.7));
+  }
+  .th-news--dark { background: var(--th-ink); }
+  .th-news__inner { max-width: 720px; margin: 0 auto; text-align: center; }
+  .th-news__eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--th-accent);
+    margin-bottom: 14px;
+  }
+  .th-news__heading { font-size: clamp(2rem, 5vw, 3.4rem); margin: 0 0 16px; color: var(--th-ink); }
+  .th-news__body { color: var(--th-muted); font-size: 1.1rem; line-height: 1.6; margin: 0 0 32px; }
+  .th-news--dark .th-news__heading,
+  .th-news--image .th-news__heading { color: #fff; }
+  .th-news--dark .th-news__body,
+  .th-news--image .th-news__body { color: #e6ddd2; }
+  .th-news__form { margin: 0 auto; max-width: 560px; }
+  .th-news__label {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .th-news__row {
+    display: flex;
+    gap: 10px;
+    background: #fff;
+    border-radius: var(--th-pill-radius);
+    padding: 8px;
+    box-shadow: 0 10px 30px rgba(20,17,15,0.12);
+  }
+  .th-news__input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-family: var(--th-body-font);
+    color: var(--th-ink);
+    outline: none;
+    min-width: 0;
+  }
+  .th-news__button { padding: 14px 30px; white-space: nowrap; }
+  .th-news__success {
+    background: #fff;
+    color: var(--th-ink);
+    display: inline-block;
+    padding: 16px 28px;
+    border-radius: var(--th-pill-radius);
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(20,17,15,0.12);
+  }
+  .th-news__error {
+    color: var(--th-accent);
+    font-size: 0.9rem;
+    margin: 12px 0 0;
+    font-weight: 600;
+  }
+  .th-news--dark .th-news__error,
+  .th-news--image .th-news__error { color: #ff8a8a; }
+  .th-news__disclaimer { font-size: 0.8rem; color: var(--th-muted); margin: 18px 0 0; }
+  .th-news--dark .th-news__disclaimer,
+  .th-news--image .th-news__disclaimer { color: #b7ab9d; }
+  @media (max-width: 560px) {
+    .th-news__row { flex-direction: column; background: transparent; box-shadow: none; padding: 0; gap: 12px; }
+    .th-news__input { background: #fff; border-radius: var(--th-pill-radius); box-shadow: 0 6px 18px rgba(20,17,15,0.1); }
+    .th-news__button { width: 100%; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Throttle Newsletter",
+  "tag": "section",
+  "class": "throttle-newsletter-wrapper",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Newsletter" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Get first dibs" },
+    { "type": "textarea", "id": "body", "label": "Body", "default": "New drops, restocks, and subscriber-only deals — straight to your inbox." },
+    { "type": "text", "id": "placeholder", "label": "Input placeholder", "default": "you@email.com" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Subscribe" },
+    { "type": "text", "id": "success_message", "label": "Success message", "default": "Thanks — you're on the list." },
+    { "type": "text", "id": "disclaimer", "label": "Disclaimer", "default": "No spam. Unsubscribe anytime." },
+    { "type": "header", "content": "Appearance" },
+    { "type": "checkbox", "id": "dark", "label": "Dark background", "default": false },
+    { "type": "url", "id": "bg_url", "label": "Background image URL (overrides dark)" }
+  ],
+  "presets": [
+    { "name": "Throttle Newsletter" }
+  ]
+}
+{% endschema %}

@@ -2,15 +2,44 @@
 {%- liquid
   assign coll = collection
   assign products = coll.products
+
+  assign default_cover = 'https://images.pexels.com/photos/8311880/pexels-photo-8311880.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1800&h=600'
+  assign cover = section.settings.cover_image
+  assign cover_src = ''
+  if cover != blank
+    assign cover_src = cover | image_url: width: 1800
+  elsif section.settings.cover_use_collection and coll.image != blank
+    assign cover_src = coll.image | image_url: width: 1800
+  elsif section.settings.cover_url != blank
+    assign cover_src = section.settings.cover_url
+  else
+    assign cover_src = default_cover
+  endif
+  assign has_cover = false
+  if section.settings.show_cover and cover_src != blank
+    assign has_cover = true
+  endif
 -%}
 
-<section class="th-coll">
-  <header class="th-coll__header">
-    <h1 class="th-display th-coll__title">{{ coll.title | default: 'Products' }}</h1>
-    {%- if coll.description != blank -%}
-      <p class="th-coll__desc">{{ coll.description }}</p>
-    {%- endif -%}
-  </header>
+<section class="th-coll{% if has_cover %} th-coll--cover{% endif %}">
+  {%- if has_cover -%}
+    <div class="th-coll__cover" style="background-image: url('{{ cover_src }}'); min-height: {{ section.settings.cover_height }}px;">
+      <div class="th-coll__cover-overlay" style="opacity: {{ section.settings.cover_overlay | divided_by: 100.0 }};"></div>
+      <div class="th-coll__cover-inner">
+        <h1 class="th-display th-coll__cover-title">{{ coll.title | default: 'Products' }}</h1>
+        {%- if coll.description != blank -%}
+          <p class="th-coll__cover-desc">{{ coll.description | strip_html | truncatewords: 30 }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- else -%}
+    <header class="th-coll__header">
+      <h1 class="th-display th-coll__title">{{ coll.title | default: 'Products' }}</h1>
+      {%- if coll.description != blank -%}
+        <p class="th-coll__desc">{{ coll.description }}</p>
+      {%- endif -%}
+    </header>
+  {%- endif -%}
 
   <div class="th-coll__layout">
     <aside class="th-coll__sidebar">
@@ -192,12 +221,34 @@
 
 {% stylesheet %}
   .th-coll { padding: 160px 24px 80px; background: #fff; }
+  .th-coll--cover { padding-top: 100px; }
   .th-coll__header {
     max-width: 1480px;
     margin: 0 auto 32px;
   }
   .th-coll__title { font-size: clamp(2.4rem, 6vw, 4.5rem); margin: 0; color: var(--th-ink); }
   .th-coll__desc { color: var(--th-muted); margin-top: 12px; max-width: 720px; line-height: 1.6; }
+
+  .th-coll__cover {
+    position: relative;
+    max-width: 1480px;
+    margin: 0 auto 40px;
+    border-radius: var(--th-card-radius);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    isolation: isolate;
+  }
+  .th-coll__cover-overlay {
+    position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, rgba(20,17,15,0.15) 0%, rgba(20,17,15,0.75) 100%);
+  }
+  .th-coll__cover-inner { padding: 48px 48px 40px; color: #fff; max-width: 760px; }
+  .th-coll__cover-title { font-size: clamp(2.4rem, 6vw, 4.5rem); margin: 0; color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.35); }
+  .th-coll__cover-desc { margin: 14px 0 0; line-height: 1.6; color: #f0e9dc; font-size: 1.05rem; }
+  @media (max-width: 640px) { .th-coll__cover-inner { padding: 32px 24px 28px; } }
 
   .th-coll__layout {
     max-width: 1480px;
@@ -321,6 +372,14 @@
 {
   "name": "Collection",
   "tag": "section",
-  "settings": []
+  "settings": [
+    { "type": "header", "content": "Cover photo" },
+    { "type": "checkbox", "id": "show_cover", "label": "Show cover photo", "default": true },
+    { "type": "checkbox", "id": "cover_use_collection", "label": "Use collection image when set", "default": true },
+    { "type": "image_picker", "id": "cover_image", "label": "Cover image" },
+    { "type": "url", "id": "cover_url", "label": "Cover image URL (fallback)" },
+    { "type": "range", "id": "cover_height", "label": "Cover height", "min": 200, "max": 560, "step": 20, "unit": "px", "default": 360 },
+    { "type": "range", "id": "cover_overlay", "label": "Overlay darkness", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 100 }
+  ]
 }
 {% endschema %}

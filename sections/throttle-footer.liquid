@@ -1,0 +1,412 @@
+{%- liquid
+  assign brand = section.settings.brand_name | default: shop.name
+  assign tagline = section.settings.tagline
+  assign dark = section.settings.dark
+
+  assign socials = ''
+  if section.settings.instagram != blank
+    assign socials = socials | append: 'instagram,' | append: section.settings.instagram | append: '|'
+  endif
+  if section.settings.tiktok != blank
+    assign socials = socials | append: 'tiktok,' | append: section.settings.tiktok | append: '|'
+  endif
+  if section.settings.facebook != blank
+    assign socials = socials | append: 'facebook,' | append: section.settings.facebook | append: '|'
+  endif
+  if section.settings.twitter != blank
+    assign socials = socials | append: 'twitter,' | append: section.settings.twitter | append: '|'
+  endif
+  if section.settings.youtube != blank
+    assign socials = socials | append: 'youtube,' | append: section.settings.youtube | append: '|'
+  endif
+  if section.settings.linkedin != blank
+    assign socials = socials | append: 'linkedin,' | append: section.settings.linkedin | append: '|'
+  endif
+  assign socials = socials | split: '|'
+-%}
+
+<footer class="th-footer{% if dark %} th-footer--dark{% endif %}" id="throttle-footer-{{ section.id }}">
+  <div class="th-footer__inner">
+    <div class="th-footer__main">
+      <div class="th-footer__brand">
+        {%- if section.settings.logo != blank -%}
+          <img class="th-footer__logo" src="{{ section.settings.logo | image_url: width: 320 }}" alt="{{ brand }}" width="{{ section.settings.logo.width }}" height="{{ section.settings.logo.height }}" loading="lazy">
+        {%- else -%}
+          <span class="th-footer__wordmark th-display">{{ brand }}</span>
+        {%- endif -%}
+
+        {%- if tagline != blank -%}
+          <p class="th-footer__tagline">{{ tagline }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.show_newsletter -%}
+          <div class="th-footer__news">
+            {%- if section.settings.news_heading != blank -%}
+              <h3 class="th-footer__news-title">{{ section.settings.news_heading }}</h3>
+            {%- endif -%}
+            {%- form 'customer', class: 'th-footer__news-form' -%}
+              <input type="hidden" name="contact[tags]" value="newsletter">
+              {%- if form.posted_successfully? -%}
+                <p class="th-footer__news-success">{{ section.settings.news_success | default: "Thanks — you're on the list." }}</p>
+              {%- else -%}
+                <label class="th-visually-hidden" for="th-footer-email-{{ section.id }}">Email</label>
+                <div class="th-footer__news-row">
+                  <input
+                    id="th-footer-email-{{ section.id }}"
+                    class="th-footer__news-input"
+                    type="email"
+                    name="contact[email]"
+                    value="{{ form.email }}"
+                    placeholder="{{ section.settings.news_placeholder | default: 'you@email.com' }}"
+                    autocomplete="email"
+                    required
+                  >
+                  <button type="submit" class="th-footer__news-btn" aria-label="{{ section.settings.news_button | default: 'Subscribe' }}">
+                    {% render 'social-icon', platform: 'arrow' %}
+                  </button>
+                </div>
+                {%- if form.errors -%}
+                  <p class="th-footer__news-error">{{ form.errors.messages.email }}</p>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endform -%}
+          </div>
+        {%- endif -%}
+
+        {%- if socials.size > 0 -%}
+          <div class="th-footer__socials">
+            {%- for entry in socials -%}
+              {%- assign parts = entry | split: ',' -%}
+              <a href="{{ parts[1] }}" class="th-footer__social" target="_blank" rel="noopener" aria-label="{{ parts[0] }}">
+                {%- render 'social-icon', platform: parts[0] -%}
+              </a>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="th-footer__columns">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'menu' -%}
+              <div class="th-footer__col" {{ block.shopify_attributes }}>
+                {%- if block.settings.heading != blank -%}
+                  <h3 class="th-footer__col-title">{{ block.settings.heading }}</h3>
+                {%- endif -%}
+                {%- if block.settings.menu != blank -%}
+                  <ul class="th-footer__links">
+                    {%- for link in block.settings.menu.links -%}
+                      <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </div>
+            {%- when 'text' -%}
+              <div class="th-footer__col" {{ block.shopify_attributes }}>
+                {%- if block.settings.heading != blank -%}
+                  <h3 class="th-footer__col-title">{{ block.settings.heading }}</h3>
+                {%- endif -%}
+                <div class="th-footer__text">{{ block.settings.content }}</div>
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    <div class="th-footer__bottom">
+      <p class="th-footer__copy">
+        {{ section.settings.copyright | default: '©' }} {{ 'now' | date: '%Y' }} {{ brand }}. All rights reserved.
+      </p>
+
+      {%- if section.settings.show_policies and shop.policies.size > 0 -%}
+        <nav class="th-footer__policies" aria-label="Legal">
+          {%- for policy in shop.policies -%}
+            <a href="{{ policy.url }}">{{ policy.title }}</a>
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+
+      <div class="th-footer__bottom-right">
+        {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+          <div class="th-footer__payments">
+            {%- for type in shop.enabled_payment_types -%}
+              {{ type | payment_type_svg_tag: class: 'th-footer__payment' }}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.show_back_to_top -%}
+          <button type="button" class="th-footer__top" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            <span>Top</span>{% render 'social-icon', platform: 'arrow-up' %}
+          </button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% stylesheet %}
+  .th-footer {
+    position: relative;
+    background: var(--th-cream-2) !important;
+    color: var(--th-ink);
+    padding: 80px 24px 32px;
+    border-top: 1px solid #ececec !important;
+    overflow: hidden;
+  }
+  .th-footer--dark {
+    background: var(--th-ink) !important;
+    color: #e6ddd2;
+    border-top: 0 !important;
+  }
+  .th-footer__inner { position: relative; z-index: 1; max-width: 1480px; margin: 0 auto; }
+  .th-visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  .th-footer__main {
+    display: grid;
+    grid-template-columns: 1.3fr 2fr;
+    gap: 64px;
+    padding-bottom: 52px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid rgba(20,17,15,0.1);
+  }
+  .th-footer--dark .th-footer__main { border-bottom-color: rgba(255,255,255,0.12); }
+  @media (max-width: 900px) { .th-footer__main { grid-template-columns: 1fr; gap: 44px; } }
+
+  .th-footer__wordmark { font-size: 2rem; color: var(--th-ink); display: inline-block; letter-spacing: 0.03em; }
+  .th-footer--dark .th-footer__wordmark { color: #fff; }
+  .th-footer__logo { display: block; height: auto; max-width: 170px; }
+  .th-footer--dark .th-footer__logo { filter: brightness(0) invert(1); }
+  .th-footer__tagline { margin: 18px 0 0; max-width: 360px; line-height: 1.6; color: var(--th-muted); }
+  .th-footer--dark .th-footer__tagline { color: #b7ab9d; }
+
+  .th-footer__news { margin-top: 28px; max-width: 380px; }
+  .th-footer__news-title {
+    font-family: var(--th-body-font) !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    color: var(--th-ink) !important;
+  }
+  .th-footer--dark .th-footer__news-title { color: #fff !important; }
+  .th-footer__news-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border-radius: 999px;
+    padding: 5px 5px 5px 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  }
+  .th-footer__news-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 11px 0;
+    font-size: 0.95rem;
+    font-family: var(--th-body-font);
+    color: var(--th-ink);
+    outline: none;
+  }
+  .th-footer__news-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--th-accent);
+    color: #fff !important;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .th-footer__news-btn:hover { background: var(--th-accent-deep); transform: translateX(2px); }
+  .th-footer__news-btn svg { width: 18px; height: 18px; }
+  .th-footer__news-success {
+    margin: 0;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 999px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+  .th-footer--dark .th-footer__news-error { color: #ff9a9a; }
+  .th-footer__news-error { margin: 10px 0 0; font-size: 0.85rem; color: var(--th-accent); font-weight: 600; }
+
+  .th-footer__socials { display: flex; gap: 12px; margin-top: 26px; }
+  .th-footer__social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px; height: 42px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #ececec;
+    color: var(--th-ink) !important;
+    transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+  }
+  .th-footer--dark .th-footer__social { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); color: #fff !important; }
+  .th-footer__social:hover { transform: translateY(-3px); background: var(--th-accent); border-color: var(--th-accent); color: #fff !important; }
+  .th-footer__social svg { width: 18px; height: 18px; }
+
+  .th-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 32px;
+  }
+  .th-footer__col-title {
+    font-family: var(--th-body-font) !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+    color: var(--th-ink) !important;
+  }
+  .th-footer--dark .th-footer__col-title { color: #fff !important; }
+  .th-footer__links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
+  .th-footer__links a,
+  .th-footer__text a {
+    color: var(--th-muted) !important;
+    text-decoration: none;
+    font-size: 0.95rem;
+    position: relative;
+    transition: color 0.2s ease, padding-left 0.2s ease;
+  }
+  .th-footer--dark .th-footer__links a,
+  .th-footer--dark .th-footer__text,
+  .th-footer--dark .th-footer__text a { color: #b7ab9d !important; }
+  .th-footer__links a::before {
+    content: "";
+    position: absolute;
+    left: -12px; top: 50%;
+    width: 0; height: 1.5px;
+    background: var(--th-accent);
+    transform: translateY(-50%);
+    transition: width 0.2s ease;
+  }
+  .th-footer__links a:hover { color: var(--th-accent) !important; padding-left: 12px; }
+  .th-footer__links a:hover::before { width: 8px; }
+  .th-footer__text { line-height: 1.6; color: var(--th-muted); font-size: 0.95rem; }
+  .th-footer__text p { margin: 0 0 10px; }
+  .th-footer__text a:hover { color: var(--th-accent) !important; }
+
+  .th-footer__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px 28px;
+    flex-wrap: wrap;
+    padding-top: 24px;
+  }
+  .th-footer__copy { margin: 0; font-size: 0.85rem; color: var(--th-muted); }
+  .th-footer--dark .th-footer__copy { color: #9c9188; }
+  .th-footer__policies { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .th-footer__policies a {
+    color: var(--th-muted) !important;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s ease;
+  }
+  .th-footer--dark .th-footer__policies a { color: #9c9188 !important; }
+  .th-footer__policies a:hover { color: var(--th-accent) !important; }
+  .th-footer__bottom-right { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-left: auto; }
+  .th-footer__payments { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .th-footer__payment { width: 38px; height: 24px; border-radius: 4px; background: #fff; }
+  .th-footer__top {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(20,17,15,0.15);
+    background: transparent;
+    cursor: pointer;
+    color: var(--th-ink) !important;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+  .th-footer--dark .th-footer__top { border-color: rgba(255,255,255,0.18); color: #e6ddd2 !important; }
+  .th-footer__top:hover { background: var(--th-accent); border-color: var(--th-accent); color: #fff !important; }
+  .th-footer__top svg { width: 14px; height: 14px; }
+
+  @media (max-width: 640px) {
+    .th-footer { padding: 60px 20px 28px; }
+    .th-footer__bottom { flex-direction: column; align-items: flex-start; }
+    .th-footer__bottom-right { margin-left: 0; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Throttle Footer",
+  "tag": "section",
+  "class": "throttle-footer-wrapper",
+  "max_blocks": 5,
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo image" },
+    { "type": "text", "id": "brand_name", "label": "Brand name (fallback wordmark)" },
+    { "type": "textarea", "id": "tagline", "label": "Tagline", "default": "One catalog, every category. Clothing, home, tech, kitchen, gifts." },
+    { "type": "header", "content": "Newsletter" },
+    { "type": "checkbox", "id": "show_newsletter", "label": "Show newsletter signup", "default": true },
+    { "type": "text", "id": "news_heading", "label": "Newsletter heading", "default": "Join the list" },
+    { "type": "text", "id": "news_placeholder", "label": "Input placeholder", "default": "you@email.com" },
+    { "type": "text", "id": "news_button", "label": "Button label (aria)", "default": "Subscribe" },
+    { "type": "text", "id": "news_success", "label": "Success message", "default": "Thanks — you're on the list." },
+    { "type": "header", "content": "Bottom bar" },
+    { "type": "text", "id": "copyright", "label": "Copyright prefix", "default": "©" },
+    { "type": "checkbox", "id": "show_policies", "label": "Show store policy links", "default": true },
+    { "type": "checkbox", "id": "show_payment_icons", "label": "Show payment icons", "default": true },
+    { "type": "checkbox", "id": "show_back_to_top", "label": "Show back-to-top", "default": true },
+    { "type": "header", "content": "Appearance" },
+    { "type": "checkbox", "id": "dark", "label": "Dark background", "default": true },
+    { "type": "header", "content": "Social links" },
+    { "type": "url", "id": "instagram", "label": "Instagram" },
+    { "type": "url", "id": "tiktok", "label": "TikTok" },
+    { "type": "url", "id": "facebook", "label": "Facebook" },
+    { "type": "url", "id": "twitter", "label": "X / Twitter" },
+    { "type": "url", "id": "youtube", "label": "YouTube" },
+    { "type": "url", "id": "linkedin", "label": "LinkedIn" }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu column",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Shop" },
+        { "type": "link_list", "id": "menu", "label": "Menu" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text column",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "About" },
+        { "type": "richtext", "id": "content", "label": "Content", "default": "<p>Questions? Reach us at <a href=\"mailto:hello@fluzox.com\">hello@fluzox.com</a>.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Throttle Footer",
+      "blocks": [
+        { "type": "menu", "settings": { "heading": "Shop" } },
+        { "type": "menu", "settings": { "heading": "Support" } },
+        { "type": "text", "settings": { "heading": "Contact" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
